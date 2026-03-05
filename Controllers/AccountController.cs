@@ -226,6 +226,21 @@ public class AccountController : Controller
 
     }
 
+    [HttpGet]
+    public IActionResult LookupAccount(string accountNumber)
+    {
+        var account = _context.Accounts
+            .Include(a => a.Customer)
+            .FirstOrDefault(a => a.AccountNumber == accountNumber);
+
+        if (account == null)
+        {
+            return Json(new { success = false, message = "Kontot hittades inte" });
+        }
+
+        return Json(new { success = true, name = account.Customer.FullName });
+    }
+
     private int? GetCustomerIdFromCookie()
     {
         if (Request.Cookies.TryGetValue("CustomerId", out var rawValue)

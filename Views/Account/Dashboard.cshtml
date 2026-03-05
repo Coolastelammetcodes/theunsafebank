@@ -41,7 +41,14 @@
     <table border="0" cellpadding="5">
         <tr>
             <td><b>Till konto:</b></td>
-            <td><input type="text" name="toAccountNumber" size="30" /></td>
+            <td>
+                <input type="text" name="toAccountNumber" id="toAccountNumber" size="30" />
+                <input type="button" value="Hämta namn" onclick="lookupAccount()" />
+            </td>
+        </tr>
+        <tr>
+            <td><b>Kontoinnehavare:</b></td>
+            <td><input type="text" id="accountHolderName" size="30" readonly style="background-color: #eee;" /></td>
         </tr>
         <tr>
             <td><b>Summa (SEK):</b></td>
@@ -120,3 +127,28 @@ else
 {
     <p><i>Inga överföringar än. Kom igen!</i></p>
 }
+
+<script>
+    function lookupAccount() {
+        var accountNumber = document.getElementById('toAccountNumber').value;
+        var nameField = document.getElementById('accountHolderName');
+        nameField.value = '';
+
+        if (!accountNumber) {
+            nameField.value = '';
+            return;
+        }
+
+        fetch('/Account/LookupAccount?accountNumber=' + encodeURIComponent(accountNumber))
+            .then(function (response) { return response.json(); })
+            .then(function (data) {
+                if (data.success) {
+                    nameField.value = data.name;
+                    nameField.style.color = 'black';
+                } else {
+                    nameField.value = data.message;
+                    nameField.style.color = 'red';
+                }
+            });
+    }
+</script>
