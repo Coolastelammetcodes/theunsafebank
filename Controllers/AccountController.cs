@@ -85,15 +85,24 @@ public class AccountController : Controller
         }
 
         // FIXME: No transaction, race condition possible. Fix with a database transaction and row locking.
-        if (fromAccount.Balance < amount)
+        decimal transactionFee = 5m;
+
+        if (fromAccount.Balance < amount + transactionFee)
         {
-            TempData["Error"] = "Insufficient funds";
+            TempData["Error"] = "Insufficient funds (a 5 SEK transaction fee applies)";
             return RedirectToAction("Dashboard");
         }
 
         // Perform transfer
-        fromAccount.Balance -= amount;
+        fromAccount.Balance -= amount + transactionFee;
         toAccount.Balance += amount;
+
+        // Credit the transaction fee to the bank's account (1001)
+        var bankAccount = _context.Accounts.FirstOrDefault(a => a.AccountNumber == "1001");
+        if (bankAccount != null && bankAccount.Id != fromAccount.Id)
+        {
+            bankAccount.Balance += transactionFee;
+        }
 
         var transfer = new Transfer
         {
