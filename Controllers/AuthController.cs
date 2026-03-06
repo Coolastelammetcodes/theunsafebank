@@ -1,3 +1,6 @@
+using System.ComponentModel.Design;
+using System.Reflection.PortableExecutable;
+using System.Runtime.CompilerServices;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using theunsafebank.Data;
@@ -19,19 +22,27 @@ public class AuthController : Controller
     {
         return View();
     }
-
+    
     [HttpPost]
     public IActionResult Login(string username, string password)
     {
+        int failedAttempts = _context.LoginAttempt.Where(l => l.Username == username && l.IsSuccess == false).Count();
+
         var customer = _context.Customers
             .FirstOrDefault(c => c.Username == username && c.Password == password);
-
+        
         if (customer != null)
         {
             Response.Cookies.Append("CustomerId", customer.Id.ToString());
             return RedirectToAction("Dashboard", "Account");
         }
-
+        
+        if(failedAttempts > 3)
+        {
+            ViewBag.Error = "Du har slut på försök. Kontakta kundtjänst eller försök senare.";
+            return View();
+        }
+        
         ViewBag.Error = "Invalid username or password";
         return View();
     }
