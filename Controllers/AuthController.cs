@@ -28,6 +28,12 @@ public class AuthController : Controller
     {
         int failedAttempts = _context.LoginAttempt.Where(l => l.Username == username && l.IsSuccess == false).Count();
 
+          if(failedAttempts > 3)
+        {
+            ViewBag.Error = "Du har slut på försök. Kontakta kundtjänst eller försök senare.";
+            return View();
+        }
+
         var customer = _context.Customers
             .FirstOrDefault(c => c.Username == username && c.Password == password);
         
@@ -37,11 +43,7 @@ public class AuthController : Controller
             return RedirectToAction("Dashboard", "Account");
         }
         
-        if(failedAttempts > 3)
-        {
-            ViewBag.Error = "Du har slut på försök. Kontakta kundtjänst eller försök senare.";
-            return View();
-        }
+      
         
         ViewBag.Error = "Invalid username or password";
         return View();
